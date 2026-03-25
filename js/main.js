@@ -24,11 +24,44 @@ function raf(time) {
 requestAnimationFrame(raf);
 
 
-// ─── 2. Navigation — Scroll Compact + Backdrop ───────────
-const nav = document.getElementById('nav');
+// ─── 2. Navigation — Scroll Compact + Backdrop + Hamburger ──
+const nav      = document.getElementById('nav');
+const burger   = document.getElementById('nav-burger');
+const navLinks = document.getElementById('nav-links');
+const navClose = document.getElementById('nav-close');
 
 lenis.on('scroll', ({ scroll }) => {
   nav.classList.toggle('scrolled', scroll > 60);
+});
+
+function openMenu() {
+  nav.classList.add('menu-open');
+  navLinks.classList.add('open');
+  burger.setAttribute('aria-expanded', 'true');
+  lenis.stop();
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMenu() {
+  nav.classList.remove('menu-open');
+  navLinks.classList.remove('open');
+  burger.setAttribute('aria-expanded', 'false');
+  lenis.start();
+  document.body.style.overflow = '';
+}
+
+burger.addEventListener('click', () => {
+  navLinks.classList.contains('open') ? closeMenu() : openMenu();
+});
+
+if (navClose) navClose.addEventListener('click', closeMenu);
+
+navLinks.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', closeMenu);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && navLinks.classList.contains('open')) closeMenu();
 });
 
 
@@ -111,16 +144,20 @@ setTimeout(fireHeroReveals, 200);
 
 
 // ─── 5. Subtle Parallax on Hero image ────────────────────
-// Max 20px movement per manifesto
+// Each element parallaxes based on its OWN viewport position.
+// progress = 0 when element top is at bottom of viewport,
+//           = 1 when element bottom is at top of viewport.
+// offset range: -20px to +20px (40px total travel)
 const parallaxImgs = document.querySelectorAll('.parallax-img');
 
-lenis.on('scroll', ({ scroll }) => {
+lenis.on('scroll', () => {
+  const viewH = window.innerHeight;
   parallaxImgs.forEach(img => {
-    const rect = img.closest('section, .gallery-main')?.getBoundingClientRect();
-    if (!rect) return;
-    const relScroll = scroll / (document.body.scrollHeight - window.innerHeight);
-    const offset = relScroll * 20; // max 20px
-    img.style.transform = `translateY(${offset}px)`;
+    const rect = img.getBoundingClientRect();
+    // Progress: 0 = element just entered from bottom, 1 = element just left at top
+    const progress = 1 - (rect.top + rect.height) / (viewH + rect.height);
+    const offset = (progress - 0.5) * 40; // centre = 0, range -20..+20
+    img.style.transform = `translateY(${offset.toFixed(2)}px)`;
   });
 });
 

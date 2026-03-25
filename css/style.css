@@ -343,8 +343,141 @@ sup { font-size: 0.55em; vertical-align: super; }
   color: var(--navy);
 }
 
+/* ─── Hamburger Button ───────────────────────────────────── */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 201;
+  order: 3; /* sits after nav-wa on narrow screens */
+}
+.nav-burger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--white);
+  border-radius: 2px;
+  transition: transform 0.35s var(--ease-out), opacity 0.25s ease, width 0.3s ease;
+  transform-origin: center;
+}
+/* Animated to X when open */
+.nav.menu-open .nav-burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav.menu-open .nav-burger span:nth-child(2) { opacity: 0; width: 0; }
+.nav.menu-open .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ─── Mobile Nav Overlay ─────────────────────────────────── */
 @media (max-width: 860px) {
-  .nav-links { display: none; }
+  .nav-burger { display: flex; }
+  .nav-wa     { display: none; } /* hidden on mobile; WA link is inside overlay */
+
+  .nav-links {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    background: rgba(10, 22, 40, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+
+    /* Hidden state */
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-12px);
+    transition:
+      opacity 0.4s var(--ease-out),
+      transform 0.4s var(--ease-out);
+  }
+  .nav-links.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .nav-links a {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--white);
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity   0.4s var(--ease-out),
+      transform 0.4s var(--ease-out),
+      color     0.2s ease;
+  }
+  /* Staggered entrance for each link */
+  .nav-links.open a:nth-child(2) { transition-delay: 0.06s; opacity: 1; transform: translateY(0); }
+  .nav-links.open a:nth-child(3) { transition-delay: 0.12s; opacity: 1; transform: translateY(0); }
+  .nav-links.open a:nth-child(4) { transition-delay: 0.18s; opacity: 1; transform: translateY(0); }
+  .nav-links.open a:nth-child(5) { transition-delay: 0.24s; opacity: 1; transform: translateY(0); }
+
+  .nav-links a:hover { color: var(--gold); }
+
+  /* WA button inside overlay */
+  .nav-links-wa {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding: 0.85rem 2rem;
+    background: #25D366;
+    color: #fff !important;
+    font-size: 1rem !important;
+    font-weight: 700;
+    border-radius: 50px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity   0.4s var(--ease-out) 0.30s,
+      transform 0.4s var(--ease-out) 0.30s,
+      background 0.25s ease;
+  }
+  .nav-links.open .nav-links-wa { opacity: 1; transform: translateY(0); }
+  .nav-links-wa:hover { background: #20b858 !important; }
+
+  /* Close (X) button inside overlay */
+  .nav-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+  }
+  .nav-close span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--white);
+    border-radius: 2px;
+  }
+  .nav-close span:first-child  { transform: translateY(1px)  rotate(45deg); }
+  .nav-close span:last-child   { transform: translateY(-1px) rotate(-45deg); }
+}
+
+/* Hide close button + WA overlay link on desktop */
+@media (min-width: 861px) {
+  .nav-close    { display: none; }
+  .nav-links-wa { display: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1420,6 +1553,91 @@ textarea { resize: vertical; min-height: 80px; }
   transition: opacity 0.2s;
 }
 .footer-credit a:hover { opacity: 0.8; }
+
+/* ═══════════════════════════════════════════════════════════
+   TESTIMONIALS
+═══════════════════════════════════════════════════════════ */
+.testi-section {
+  background: var(--navy-mid);
+}
+
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 0;
+}
+@media (max-width: 900px) { .testi-grid { grid-template-columns: 1fr; max-width: 520px; } }
+
+.testi-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.75rem;
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), transform 0.4s var(--ease-out);
+}
+.testi-card:hover {
+  border-color: var(--gold-border);
+  box-shadow: 0 8px 40px rgba(201,168,76,0.08);
+  transform: translateY(-4px);
+}
+
+.testi-stars {
+  display: flex;
+  gap: 0.2rem;
+  color: var(--gold);
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.testi-quote {
+  font-family: var(--fb);
+  font-size: 0.95rem;
+  font-style: italic;
+  color: rgba(248,250,252,0.8);
+  line-height: 1.75;
+  flex: 1;
+  position: relative;
+  padding-left: 1.25rem;
+  border-left: 2px solid var(--gold-border);
+  margin: 0;
+}
+
+.testi-author {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.testi-flag {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.testi-author div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.testi-author strong {
+  font-family: var(--fh);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.testi-author span {
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
 
 /* ═══════════════════════════════════════════════════════════
    SCROLLBAR
