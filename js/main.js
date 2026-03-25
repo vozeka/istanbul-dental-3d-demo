@@ -2,6 +2,7 @@
  * Istanbul Dental Center — Main JS
  * Content-first approach: Lenis smooth scroll + IntersectionObserver reveals
  * + Scroll-driven frame sequence (tooth transformation story)
+ * Premium Micro-Interactions: word split, clip-path reveals, magnetic buttons
  *
  * NO Three.js. Real photography leads.
  */
@@ -23,7 +24,7 @@ function raf(time) {
 requestAnimationFrame(raf);
 
 
-// ─── 2. Navigation scroll effect ─────────────────────────
+// ─── 2. Navigation — Scroll Compact + Backdrop ───────────
 const nav = document.getElementById('nav');
 
 lenis.on('scroll', ({ scroll }) => {
@@ -31,7 +32,47 @@ lenis.on('scroll', ({ scroll }) => {
 });
 
 
-// ─── 3. IntersectionObserver — Reveal Animations ─────────
+// ─── 3. Hero Title — Word-by-Word Reveal ──────────────────
+// Premium signal: each word slides up from overflow:hidden container
+function initHeroTitle() {
+  const el = document.querySelector('.hero-title');
+  if (!el) return;
+
+  // Define words with em (gold) flag
+  const words = [
+    { text: 'The',     em: false },
+    { text: 'World',   em: false },
+    { text: 'Is',      em: false },
+    { text: 'Worth',   em: false },
+    { text: 'Smiling', em: true  },
+    { text: 'For',     em: true  },
+  ];
+
+  el.innerHTML = '';
+  el.setAttribute('aria-label', 'The World Is Worth Smiling For');
+
+  words.forEach((w, i) => {
+    const wrapper = document.createElement('span');
+    wrapper.className = 'split-word-wrap';
+
+    const inner = document.createElement('span');
+    inner.textContent = w.text;
+    inner.className = 'split-word' + (w.em ? ' split-word-em' : '');
+    inner.style.transitionDelay = `${0.18 + i * 0.1}s`; // stagger after tag reveal
+
+    wrapper.appendChild(inner);
+    el.appendChild(wrapper);
+
+    // Add line-break after "Worth" (index 3) for visual hierarchy
+    if (i === 3) {
+      el.appendChild(document.createElement('br'));
+    }
+  });
+}
+initHeroTitle();
+
+
+// ─── 4. IntersectionObserver — Reveal & Clip-Path ─────────
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -44,22 +85,32 @@ const revealObserver = new IntersectionObserver((entries) => {
   rootMargin: '0px 0px -40px 0px',
 });
 
-// Observe all .reveal and .reveal-stagger elements
-document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => {
+// Observe .reveal, .reveal-stagger, AND clip-path reveal elements
+document.querySelectorAll(
+  '.reveal, .reveal-stagger, .clip-reveal, .clip-reveal-left, .clip-reveal-right'
+).forEach(el => {
   revealObserver.observe(el);
 });
 
 // Hero reveals fire immediately (above fold)
 function fireHeroReveals() {
+  // Trigger tag + subtitle + actions reveals
   document.querySelectorAll('.hero-content .reveal').forEach((el, i) => {
     setTimeout(() => el.classList.add('visible'), 100 + i * 120);
   });
+
+  // Trigger word-by-word hero title
+  setTimeout(() => {
+    document.querySelectorAll('.hero-title .split-word').forEach(word => {
+      word.classList.add('visible');
+    });
+  }, 280);
 }
 // Small delay so Lenis initialises first
 setTimeout(fireHeroReveals, 200);
 
 
-// ─── 4. Subtle Parallax on Hero image ────────────────────
+// ─── 5. Subtle Parallax on Hero image ────────────────────
 // Max 20px movement per manifesto
 const parallaxImgs = document.querySelectorAll('.parallax-img');
 
@@ -74,7 +125,42 @@ lenis.on('scroll', ({ scroll }) => {
 });
 
 
-// ─── 5. Frame Sequence Controller ────────────────────────
+// ─── 6. Magnetic Buttons ──────────────────────────────────
+// Physical attraction effect — cursor pulls the button
+// mouseleave uses elastic ease-back (0.4s cubic-bezier)
+function initMagneticButtons() {
+  document.querySelectorAll('.magnetic-btn').forEach(btn => {
+    let isLeaving = false;
+
+    btn.addEventListener('mouseenter', () => {
+      isLeaving = false;
+      btn.style.transition = 'background 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out)';
+      // No transform transition on enter — instant follow
+    });
+
+    btn.addEventListener('mousemove', (e) => {
+      if (isLeaving) return;
+      const rect = btn.getBoundingClientRect();
+      const x = (e.clientX - rect.left - rect.width  / 2) * 0.35;
+      const y = (e.clientY - rect.top  - rect.height / 2) * 0.35;
+      btn.style.transform = `translate(${x}px, ${y}px)`;
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      isLeaving = true;
+      btn.style.transition = [
+        'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'background 0.3s var(--ease-out)',
+        'box-shadow 0.3s var(--ease-out)',
+      ].join(', ');
+      btn.style.transform = 'translate(0, 0)';
+    });
+  });
+}
+initMagneticButtons();
+
+
+// ─── 7. Frame Sequence Controller ────────────────────────
 // Scroll-driven tooth transformation — justified:
 // it IS the product story, not decoration.
 
@@ -207,7 +293,7 @@ lenis.on('scroll', ({ scroll }) => {
 });
 
 
-// ─── 6. Lead Form ────────────────────────────────────────
+// ─── 8. Lead Form ────────────────────────────────────────
 const form        = document.getElementById('lead-form');
 const submitBtn   = document.getElementById('submit-btn');
 const formSuccess = document.getElementById('form-success');
@@ -248,7 +334,7 @@ if (form) {
 }
 
 
-// ─── 7. Smooth anchor scrolling ──────────────────────────
+// ─── 9. Smooth anchor scrolling ──────────────────────────
 document.querySelectorAll('a[href^="#"]').forEach(link => {
   link.addEventListener('click', (e) => {
     const id = link.getAttribute('href').slice(1);
